@@ -1,0 +1,17 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+PKGDIR = $(CURDIR)/debian/fifo-log-demux
+
+%:
+	dh $@
+
+override_dh_install:
+	install -d -m 755 -o root -g root $(PKGDIR)/usr/bin
+	go build -o $(PKGDIR)/usr/bin/fifo-log-demux fifo-log-demux.go
+	chmod 755 $(PKGDIR)/usr/bin/fifo-log-demux
+	chown root:root $(PKGDIR)/usr/bin/fifo-log-demux
+	install -m 755 -o root -g root fifo-log-tailer $(PKGDIR)/usr/bin

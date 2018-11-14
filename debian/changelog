@@ -1,0 +1,5 @@
+fifo-log-demux (0.1) unstable; urgency=medium
+
+  * Initial release.
+
+ -- Emanuele Rocca <ema@wikimedia.org>  Wed, 14 Nov 2018 11:07:02 +0100

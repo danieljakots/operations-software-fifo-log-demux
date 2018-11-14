@@ -1,0 +1,8 @@
+#!/bin/bash
+
+: "${LOG_SOCKET:=/run/user/$(id -u)/log.sock}"
+
+REGEXP="${1:-}"
+
+# call /bin/cat to avoid sending EOF
+(echo $REGEXP && cat) | socat UNIX-CONNECT:$LOG_SOCKET -
