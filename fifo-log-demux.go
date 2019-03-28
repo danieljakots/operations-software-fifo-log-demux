@@ -53,14 +53,14 @@ func (s *Server) readLogs() {
 	scanner := bufio.NewScanner(s.pipe)
 
 	for scanner.Scan() {
-		data := scanner.Text()
+		data := scanner.Bytes()
 
 		s.lock.Lock()
 		for conn, exp := range s.conns {
 			// If the data read from the named pipe matches the regular
 			// expression provided by this client
-			if exp.MatchString(data) {
-				if _, err := conn.Write([]byte(data + "\n")); err != nil {
+			if exp.Match(data) {
+				if _, err := conn.Write(append(data, byte('\n'))); err != nil {
 					if err != syscall.EPIPE {
 						log.Println("Error writing to client connection:", err)
 					}

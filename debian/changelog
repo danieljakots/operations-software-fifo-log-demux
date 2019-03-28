@@ -1,3 +1,9 @@
+fifo-log-demux (0.2) unstable; urgency=medium
+
+  * Use scanner.Bytes instead of .Text
+
+ -- Emanuele Rocca <ema@wikimedia.org>  Tue, 16 Apr 2019 14:51:43 +0200
+
 fifo-log-demux (0.1) unstable; urgency=medium
 
   * Initial release.
