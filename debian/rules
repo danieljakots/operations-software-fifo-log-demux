@@ -14,4 +14,6 @@ override_dh_install:
 	go build -o $(PKGDIR)/usr/bin/fifo-log-demux fifo-log-demux.go
 	chmod 755 $(PKGDIR)/usr/bin/fifo-log-demux
 	chown root:root $(PKGDIR)/usr/bin/fifo-log-demux
-	install -m 755 -o root -g root fifo-log-tailer $(PKGDIR)/usr/bin
+	go build -o $(PKGDIR)/usr/bin/fifo-log-tailer fifo-log-tailer.go
+	chmod 755 $(PKGDIR)/usr/bin/fifo-log-tailer
+	chown root:root $(PKGDIR)/usr/bin/fifo-log-tailer
