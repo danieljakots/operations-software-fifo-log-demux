@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"io"
-	"io/ioutil"
 	"log"
 	"net"
 	"os"
@@ -31,9 +30,9 @@ func main() {
 	}
 
 	// Write to standard output what is read from fifo-log-demux
-	tee := io.TeeReader(c, io.Writer(os.Stdout))
-	_, err = ioutil.ReadAll(tee)
+	buf := make([]byte, 32*1024)
+	_, err = io.CopyBuffer(io.Writer(os.Stdout), c, buf)
 	if err != nil {
-		log.Fatal("Read error: ", err)
+		log.Fatal("Copy error: ", err)
 	}
 }

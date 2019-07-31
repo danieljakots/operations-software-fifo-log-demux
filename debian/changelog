@@ -1,3 +1,10 @@
+fifo-log-demux (0.4) unstable; urgency=medium
+
+  * fifo-log-tailer: avoid evergrowing memory usage by replacing
+    io.TeeReader/ioutil.ReadAll with io.CopyBuffer (Bug: T229414)
+
+ -- Emanuele Rocca <ema@wikimedia.org>  Wed, 31 Jul 2019 15:32:07 +0200
+
 fifo-log-demux (0.3) unstable; urgency=medium
 
   * Implement fifo-log-tailer in go
