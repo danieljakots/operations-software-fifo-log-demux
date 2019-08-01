@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"io"
 	"log"
 	"net"
 	"os"
@@ -28,13 +27,13 @@ var (
 // them (which isn't a particularly clever design, but it works for the
 // intended use case).
 type Server struct {
-	lock     sync.Mutex
-	pipe     io.Reader
-	conns    map[net.Conn]*regexp.Regexp
-	listener *net.UnixListener
+	lock        sync.Mutex
+	logFifoPath string
+	conns       map[net.Conn]*regexp.Regexp
+	listener    *net.UnixListener
 }
 
-func NewServer(pipe io.Reader, socketPath string) (*Server, error) {
+func NewServer(logFifoPath, socketPath string) (*Server, error) {
 	os.Remove(socketPath)
 
 	l, err := net.ListenUnix("unix", &net.UnixAddr{socketPath, "unix"})
@@ -42,33 +41,44 @@ func NewServer(pipe io.Reader, socketPath string) (*Server, error) {
 		return nil, err
 	}
 	return &Server{
-		pipe:     pipe,
-		listener: l,
-		conns:    make(map[net.Conn]*regexp.Regexp),
+		logFifoPath: logFifoPath,
+		listener:    l,
+		conns:       make(map[net.Conn]*regexp.Regexp),
 	}, nil
 }
 
 func (s *Server) readLogs() {
-	scanner := bufio.NewScanner(s.pipe)
+	for {
+		// By keeping this in an infinite loop fifo-log-demux is able to re-open
+		// the logFifoPath after an EOF that's usually received cause the other side of
+		// the pipe has been closed
+		f, err := os.Open(s.logFifoPath)
+		if err != nil {
+			log.Fatal(err)
+		}
 
-	for scanner.Scan() {
-		data := scanner.Bytes()
+		scanner := bufio.NewScanner(f)
 
-		s.lock.Lock()
-		for conn, exp := range s.conns {
-			// If the data read from the named pipe matches the regular
-			// expression provided by this client
-			if exp.Match(data) {
-				if _, err := conn.Write(append(data, byte('\n'))); err != nil {
-					if err != syscall.EPIPE {
-						log.Println("Error writing to client connection:", err)
+		for scanner.Scan() {
+			data := scanner.Bytes()
+
+			s.lock.Lock()
+			for conn, exp := range s.conns {
+				// If the data read from the named pipe matches the regular
+				// expression provided by this client
+				if exp.Match(data) {
+					if _, err := conn.Write(append(data, byte('\n'))); err != nil {
+						if err != syscall.EPIPE {
+							log.Println("Error writing to client connection:", err)
+						}
+						delete(s.conns, conn)
+						conn.Close()
 					}
-					delete(s.conns, conn)
-					conn.Close()
 				}
 			}
+			s.lock.Unlock()
 		}
-		s.lock.Unlock()
+		f.Close()
 	}
 }
 
@@ -114,13 +124,7 @@ func main() {
 	log.SetFlags(0)
 	flag.Parse()
 
-	f, err := os.Open(*logFifoPath)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer f.Close()
-
-	srv, err := NewServer(f, *socketPath)
+	srv, err := NewServer(*logFifoPath, *socketPath)
 	if err != nil {
 		log.Fatal(err)
 	}
