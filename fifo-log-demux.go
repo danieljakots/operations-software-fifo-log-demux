@@ -16,7 +16,6 @@ import (
 
 var (
 	logFifoPath = flag.String("log-fifo", "/var/run/fifo.pipe", "named pipe to read from")
-	logFifoFd   = flag.Int("log-fifo-fd", -1, "named pipe file descriptor for socket activation")
 	socketPath  = flag.String("socket", "/var/run/log.socket", "socket for local connections")
 )
 
@@ -115,18 +114,13 @@ func main() {
 	log.SetFlags(0)
 	flag.Parse()
 
-	var r io.Reader
-	if *logFifoFd >= 0 {
-		r = os.NewFile(uintptr(*logFifoFd), "fifo")
-	} else {
-		f, err := os.Open(*logFifoPath)
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer f.Close()
-		r = f
+	f, err := os.Open(*logFifoPath)
+	if err != nil {
+		log.Fatal(err)
 	}
-	srv, err := NewServer(r, *socketPath)
+	defer f.Close()
+
+	srv, err := NewServer(f, *socketPath)
 	if err != nil {
 		log.Fatal(err)
 	}
