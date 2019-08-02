@@ -68,8 +68,12 @@ func (s *Server) readLogs() {
 				// expression provided by this client
 				if exp.Match(data) {
 					if _, err := conn.Write(append(data, byte('\n'))); err != nil {
-						if err != syscall.EPIPE {
-							log.Println("Error writing to client connection:", err)
+						if opErr, ok := err.(*net.OpError); ok {
+							if syscallErr, ok := opErr.Err.(*os.SyscallError); ok {
+								if errno, ok := syscallErr.Err.(syscall.Errno); ok && errno != syscall.EPIPE {
+									log.Println("Error writing to client connection:", err)
+								}
+							}
 						}
 						delete(s.conns, conn)
 						conn.Close()
