@@ -1,3 +1,12 @@
+fifo-log-demux (0.5) unstable; urgency=medium
+
+  * fifo-log-demux: Fix EPIPE check
+  * fifo-log-demux: Keep attempting to read the FIFO after EOF
+  * fifo-log-demux: Remove socket activation
+  * debian: Added vgutierrez to the Uploaders list
+
+ -- Valentin Gutierrez <vgutierrez@wikimedia.org>  Mon, 05 Aug 2019 14:15:53 +0700
+
 fifo-log-demux (0.4) unstable; urgency=medium
 
   * fifo-log-tailer: avoid evergrowing memory usage by replacing
