@@ -13,26 +13,38 @@ var (
 	regexp     = flag.String("regexp", " ", "regular expression against which log entries are matched")
 )
 
-func main() {
-	flag.Parse()
-
+func readSocket(socketPath, regexp string) error {
 	// Connect to fifo-log-demux socket
-	c, err := net.Dial("unix", *socketPath)
+	c, err := net.Dial("unix", socketPath)
 	if err != nil {
-		log.Fatal("Dial error: ", err)
+		return err
 	}
 	defer c.Close()
 
 	// Send regexp to fifo-log-demux
-	_, err = c.Write([]byte(*regexp))
+	_, err = c.Write([]byte(regexp))
 	if err != nil {
-		log.Fatal("Write error: ", err)
+		return err
 	}
 
 	// Write to standard output what is read from fifo-log-demux
 	buf := make([]byte, 32*1024)
 	_, err = io.CopyBuffer(io.Writer(os.Stdout), c, buf)
 	if err != nil {
-		log.Fatal("Copy error: ", err)
+		return err
+	}
+	return nil
+}
+
+func main() {
+	flag.Parse()
+
+	for {
+		// By keeping this in an infinite loop fifo-log-tailer is able to re-open
+		// the UNIX socket after an error
+		err := readSocket(*socketPath, *regexp)
+		if err != nil {
+			log.Println("Unable to read from socket:", err)
+		}
 	}
 }
