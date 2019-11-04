@@ -1,3 +1,10 @@
+fifo-log-demux (0.6) unstable; urgency=medium
+
+  * fifo-log-tailer: Keep attempting to read from the unix socket
+    if the connection gets interrupted
+
+ -- Valentin Gutierrez <vgutierrez@wikimedia.org>  Mon, 04 Nov 2019 08:29:51 +0000
+
 fifo-log-demux (0.5) unstable; urgency=medium
 
   * fifo-log-demux: Fix EPIPE check
