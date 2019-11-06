@@ -1,6 +1,8 @@
 fifo-log-demux
 ==============
 
+![Architecture](architecture.png)
+
 Allow multiple clients to read logs from a named pipe.
 
 Servers such as NGINX and Apache Traffic Server can send their access logs to a
