@@ -29,7 +29,7 @@ func readSocket(socketPath, regexp string) error {
 
 	// Write to standard output what is read from fifo-log-demux
 	buf := make([]byte, 32*1024)
-	_, err = io.CopyBuffer(io.Writer(os.Stdout), c, buf)
+	_, err = io.CopyBuffer(os.Stdout, c, buf)
 	if err != nil {
 		return err
 	}
