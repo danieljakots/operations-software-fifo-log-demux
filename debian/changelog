@@ -1,8 +1,10 @@
-fifo-log-demux (0.6.2) UNRELEASED; urgency=medium
+fifo-log-demux (0.6.2) buster-wikimedia; urgency=medium
 
   * fifo-log-tailer: do not convert stdout to io.Writer
+  * fifo-log-tailer: wait one second between socket connection attempts,
+    giving up eventually after 10 tries. T268883
 
- -- Emanuele Rocca <ema@wikimedia.org>  Wed, 19 Feb 2020 12:32:16 +0100
+ -- Emanuele Rocca <ema@wikimedia.org>  Mon, 30 Nov 2020 11:48:47 +0100
 
 fifo-log-demux (0.6.1) buster-wikimedia; urgency=medium
 

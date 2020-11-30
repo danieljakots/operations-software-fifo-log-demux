@@ -6,6 +6,12 @@ import (
 	"log"
 	"net"
 	"os"
+	"time"
+)
+
+const (
+	connectionAttempts = 10
+	connectionRetryMs  = 1000
 )
 
 var (
@@ -39,12 +45,22 @@ func readSocket(socketPath, regexp string) error {
 func main() {
 	flag.Parse()
 
-	for {
+	attempt := 0
+
+	for ; attempt < connectionAttempts; attempt++ {
 		// By keeping this in an infinite loop fifo-log-tailer is able to re-open
 		// the UNIX socket after an error
 		err := readSocket(*socketPath, *regexp)
 		if err != nil {
 			log.Println("Unable to read from socket:", err)
+			time.Sleep(connectionRetryMs * time.Millisecond)
+		} else {
+			attempt = 0
 		}
+	}
+
+	if attempt == connectionAttempts {
+		log.Printf("Could not connect to %s after %d attempts. Exiting.\n", *socketPath, connectionAttempts)
+		os.Exit(1)
 	}
 }
