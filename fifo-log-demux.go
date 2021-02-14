@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -74,13 +75,10 @@ func (s *Server) readLogs() {
 					continue
 				}
 
-				if opErr, ok := err.(*net.OpError); ok {
-					if syscallErr, ok := opErr.Err.(*os.SyscallError); ok {
-						if errno, ok := syscallErr.Err.(syscall.Errno); ok && errno != syscall.EPIPE {
-							log.Println("Error writing to client connection:", err)
-						}
-					}
+				if !errors.Is(err, syscall.EPIPE) {
+					log.Println("Error writing to client connection:", err)
 				}
+
 				delete(s.conns, conn)
 				conn.Close()
 			}
