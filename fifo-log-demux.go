@@ -71,16 +71,17 @@ func (s *Server) readLogs() {
 					continue
 				}
 
-				if _, err := conn.Write(append(data, byte('\n'))); err == nil {
-					continue
+				_, err := conn.Write(append(data, byte('\n')))
+
+				if err != nil {
+					if !errors.Is(err, syscall.EPIPE) {
+						log.Println("Error writing to client connection:", err)
+					}
+
+					delete(s.conns, conn)
+					conn.Close()
 				}
 
-				if !errors.Is(err, syscall.EPIPE) {
-					log.Println("Error writing to client connection:", err)
-				}
-
-				delete(s.conns, conn)
-				conn.Close()
 			}
 			s.lock.Unlock()
 		}
