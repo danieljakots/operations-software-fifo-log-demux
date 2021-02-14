@@ -64,21 +64,25 @@ func (s *Server) readLogs() {
 
 			s.lock.Lock()
 			for conn, exp := range s.conns {
-				// If the data read from the named pipe matches the regular
-				// expression provided by this client
-				if exp.Match(data) {
-					if _, err := conn.Write(append(data, byte('\n'))); err != nil {
-						if opErr, ok := err.(*net.OpError); ok {
-							if syscallErr, ok := opErr.Err.(*os.SyscallError); ok {
-								if errno, ok := syscallErr.Err.(syscall.Errno); ok && errno != syscall.EPIPE {
-									log.Println("Error writing to client connection:", err)
-								}
-							}
+				// If the data read from the named pipe doesn't match the
+				// regular expression provided by this client, ignore it
+				if !exp.Match(data) {
+					continue
+				}
+
+				if _, err := conn.Write(append(data, byte('\n'))); err == nil {
+					continue
+				}
+
+				if opErr, ok := err.(*net.OpError); ok {
+					if syscallErr, ok := opErr.Err.(*os.SyscallError); ok {
+						if errno, ok := syscallErr.Err.(syscall.Errno); ok && errno != syscall.EPIPE {
+							log.Println("Error writing to client connection:", err)
 						}
-						delete(s.conns, conn)
-						conn.Close()
 					}
 				}
+				delete(s.conns, conn)
+				conn.Close()
 			}
 			s.lock.Unlock()
 		}
